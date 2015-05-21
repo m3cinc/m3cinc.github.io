@@ -10,7 +10,7 @@
 
 <meta name="author" content="Marc Borowczak" />
 
-<meta name="date" content="2015-05-20" />
+<meta name="date" content="2015-05-21" />
 
 <title>Practical Machine Learning: PML2</title>
 
@@ -64,13 +64,13 @@ img {
 <div id="header">
 <h1 class="title">Practical Machine Learning: PML2</h1>
 <h4 class="author"><em>Marc Borowczak</em></h4>
-<h4 class="date"><em>2015-05-20</em></h4>
+<h4 class="date"><em>2015-05-21</em></h4>
 </div>
 
 
 <div id="summary" class="section level3">
 <h3>Summary</h3>
-<p>Accelerometer data provided as a pml.testing dataset (19622 observations) collected by 6 participants in belt, forearm, arm and dumbbell were analyzed and used to train a practical machine learning to predict a set of 20 outcomes (pml.testing) randomly sampled. From the available testing set, 12 variables corresponding to the accelerometer raw data were retained in each location in addition to the dependent outcome variable classe, (49 variables) were selected to train machine learning. 3 different algorithms were probed and evaluated based on their prediction accuracy (RPart, Random Forest and Gradient Boosting with trees), and available in the caret package. The most accurate prediction (&gt;99.3%) were obtained with the Random Forest algorithm yielding to perfect scoring on the 20 random outcome. The only drawback encountered in this process was the compute time which on the Win64 platform took up to 7 hours to complete.</p>
+<p>Accelerometer data provided as a pml.testing dataset (19622 observations) collected by 6 participants in belt, forearm, arm and dumbbell were analyzed and used to train a practical machine learning to predict a set of 20 outcomes (pml.testing) randomly sampled. From the available testing set, 12 variables corresponding to the accelerometer raw data were retained in each location in addition to the dependent outcome variable classe, (49 variables) were selected to train machine learning. 2 different algorithms were probed and evaluated based on their prediction accuracy (Random Forest and Gradient Boosting with trees), and available in the caret package. The most accurate prediction (&gt;99.3%) were obtained with the Random Forest algorithm yielding to perfect scoring on the 20 random outcome. The only drawback encountered in this process was the compute time which on the Win64 platform took up to 14 hours to complete.</p>
 </div>
 <div id="system-and-platform-documentation" class="section level3">
 <h3>System and Platform Documentation</h3>
@@ -239,7 +239,7 @@ g4&lt;-ggpairs(dftrain[,c(37:48,49)],title=&quot;Forearm Sensor Data&quot;,lower
 </div>
 <div id="training-algorithm-and-testing" class="section level3">
 <h3>Training Algorithm and Testing</h3>
-<p>After setting seed (to enable reproducible outcome), start Machine training and perform sequentially 3 models (RPart, RF and GBM). The only pre-processing steps are to center and scale the data. The output is written to the respective subdirectories.</p>
+<p>After setting seed (to enable reproducible outcome), start Machine training and perform sequentially 2 models (RF and GBM). The only pre-processing steps are to center and scale the data. The output is written to the respective subdirectories.</p>
 <pre class="r"><code>set.seed(12321)
 inTrain&lt;-createDataPartition(dftrain$classe,p=0.75)[[1]]
 crossv&lt;- dftrain[-inTrain,]
