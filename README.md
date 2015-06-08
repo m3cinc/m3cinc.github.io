@@ -1,5 +1,6 @@
-# m3cinc.github.io is Github web presence on
+# m3cinc.github.io
 
-## Published work includes
-[Practical Machine Learning](http://m3cinc.github.io/PML2.html)
-[Shiny App presentation](http://m3cinc.github.io/DataPre-Processor.html)
+Thi sfile just points to Github published documents:
+
+- [Practical Machine Learning](http://m3cinc.github.io/PML2.html)
+- [Shiny App presentation](http://m3cinc.github.io/DataPre-Processor.html)
