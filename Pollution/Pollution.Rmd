@@ -260,7 +260,7 @@ df[,c("lon","lat")] %>%
 pollutant$yr<-as.factor(pollutant$yr)
 ```
 
-## 2 Histograms
+## Histograms
 
 It is important to observe pollutant levels, but also essential to realize at which distance the radius monitoring is occuring. Since the screener routing adapts itself to the 5 nearest neighbors mean, we need to see how these radii are distributed.
 

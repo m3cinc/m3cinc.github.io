@@ -90,7 +90,7 @@ img {
 </ul></li>
 <li><a href="#analysis">Analysis</a><ul>
 <li><a href="#averaging-pollutants">Averaging Pollutants</a></li>
-<li><a href="#histograms">2 Histograms</a></li>
+<li><a href="#histograms">Histograms</a></li>
 <li><a href="#ggplot-maps">ggplot Maps</a></li>
 <li><a href="#retrieving-county-data-for-50-us-states">Retrieving county Data for 50 US States</a></li>
 <li><a href="#checking-out-ak-and-hi">Checking Out AK and HI</a></li>
@@ -370,7 +370,7 @@ df[,<span class="kw">c</span>(<span class="st">&quot;lon&quot;</span>,<span clas
 pollutant$yr&lt;-<span class="kw">as.factor</span>(pollutant$yr)</code></pre>
 </div>
 <div id="histograms" class="section level2">
-<h2>2 Histograms</h2>
+<h2>Histograms</h2>
 <p>It is important to observe pollutant levels, but also essential to realize at which distance the radius monitoring is occuring. Since the screener routing adapts itself to the 5 nearest neighbors mean, we need to see how these radii are distributed.</p>
 <pre class="sourceCode r"><code class="sourceCode r">m1&lt;-<span class="kw">ggplot</span>(pollutant,<span class="kw">aes</span>(<span class="dt">x=</span>radius)) +<span class="st"> </span><span class="kw">geom_histogram</span>(<span class="dt">binwidth=</span><span class="dv">20</span>,<span class="dt">color=</span><span class="st">&quot;grey50&quot;</span>,<span class="dt">fill=</span><span class="st">'blue'</span>) +
 <span class="st">      </span><span class="kw">labs</span>(<span class="dt">title=</span><span class="st">&quot;2008 ~ 2015 Radius (Miles) reporting Pollutants&quot;</span>,<span class="dt">x=</span><span class="st">&quot;Radius (Miles)&quot;</span>,<span class="dt">y=</span><span class="st">&quot;Count&quot;</span>)+
