@@ -777,7 +777,7 @@ choroplethr_animate(choropleths)
 ```
 
 ```
-## [1] "All files will be written to the current working directory: P:/Developing Data Products/Pollution/figures . To change this use setwd()"
+## [1] "All files will be written to the current working directory: P:/Developing Data Products/Pollution/Pollution_files/figure-html . To change this use setwd()"
 ## [1] "Now writing individual choropleth files there as 'choropleth_1.png', 'choropleth_2.png', etc."
 ```
 
