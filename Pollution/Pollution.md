@@ -259,12 +259,12 @@ model.predict <- function(df) {
 ```
 yhat.config follows but is not rendered to keep the apikey private... and function is not redeployed
 
-Only invoke yhat.deploy when changing the model, so we will nott re-deploy now.
+Only invoke yhat.deploy when changing the model, so we will not re-deploy now.
 
 ```r
 yhat.deploy("screener")   
 ```
-However, since the function has been deployed previously, we can call yhat.predict.It returns the expected output illustrated in the screner function.
+However, since the function has been deployed previously, we can call yhat.predict. It returns the expected output illustrated in the screner function.
 
 ```r
 data <-c("lon"=-86.70649,"lat"= 32.4302)
@@ -343,7 +343,7 @@ m2
 
 ## ggplot Maps
 
-With a little rea-arranging we a can chart the levels and radii trends for Ozone and PM2.5 using first ggplot(). We tidy the data and merge counties information from the map_data("county").Observing that reporting for 2015 is not complete, we will base comparisons and trends up to 2014 at this time.
+With a little re-arranging we a can chart the levels and radii trends for Ozone and PM2.5 using first ggplot(). We tidy the data and merge counties information from the map_data("county"). Observing that reporting for 2015 is not complete, we will base comparisons and trends up to 2014 at this time.
 
 
 ```r
@@ -356,7 +356,7 @@ m.usa <- m.usa[ ,-5]
 names(m.usa)[5] <- 'region'
 ```
 
-We are now ready to chart these county ggplots...We will slightly adapt the scales as indicated to produce meaningful ranges of Ozone and PM2.5 (in ppm) and radii (in Miles). 
+We are now ready to chart these county ggplots...We will slightly adapt the scales as indicated to produce meaningful ranges of Ozone and PM2.5 (in ppm) and radii (in miles). 
 
 
 ```r
@@ -370,7 +370,7 @@ g1
 ```
 
 ![](Pollution_files/figure-html/ggplot-1-1.png) 
-We observe: West/Southwest highest but decresing Ozone levels over the 2008-2014 period.
+We observe: West/Southwest highest but decreasing Ozone levels over the 2008-2014 period.
 
 ```r
 g2 <- ggplot(subset(pollutant,type=="PM2p5"), aes(map_id = region)) +
@@ -464,7 +464,7 @@ g6
 ```r
 rm(m.usa) # cleanup
 ```
-We observe some significant improvements observed in CO (arapahoe,denver,adams...).
+We observe some significant improvements in CO (arapahoe, denver, adams...),
 
 ```r
 head(t[order(t$radius.change), ], 10, addrownums = FALSE)
@@ -494,7 +494,7 @@ head(t[order(t$radius.change), ], 10, addrownums = FALSE)
 ## 188     -155.7303
 ## 214     -152.4192
 ```
-While degradations in ND (divide,burke,mountrail,...), and MT (sheridan,richland),
+and degradations in ND (divide, burke, mountrail,...) and MT (sheridan, richland).
 
 ```r
 tail(t[order(t$radius.change), ], 10, addrownums = FALSE)
@@ -527,7 +527,7 @@ tail(t[order(t$radius.change), ], 10, addrownums = FALSE)
 
 ## Retrieving county Data for 50 US States
 
-Finally, we attempt another approach with choroplethr, athough there is little data for AK and HI... we want to undertake the challenge to visualize not only the lower 48 but also  the 49th and 50th US states... This requires a download of the complete county list for all states, a dataset availbale from the [US Census and data repository](http://www.census.gov/en.html).
+Finally, we attempt another approach with choroplethr, athough there is little data for AK and HI... we want to undertake the challenge to visualize not only the lower 48 but also the 49th and 50th US states... This requires a download of the complete county list for all states, a dataset available from the [US Census and data repository](http://www.census.gov/en.html).
 
 
 ```r
@@ -599,7 +599,7 @@ m3
 ```
 
 ![](Pollution_files/figure-html/ggplot-m-3.png) 
-We observe HI has no data reported, and radius values in excess of 2000 Miles indicate most likely CA levels are reported. We also note AK has some reports below 500 miles which we retain for now...
+We observe HI has no data reported, and radius values in excess of 2000 miles indicate most likely CA levels are reported. We also note AK has some reports below 500 miles which we retain for now in 2011 and 2012...
 
 ```r
 m4<-ggplot(subset(t,state %in% c("alaska","hawaii") & radius <500),aes(x=radius)) +
@@ -746,7 +746,7 @@ rm(y,t) # cleanup
 
 ## Choroplethr Approach with Animation
 
-To perform this last step, we limit our observation to a radius less than 250 miles. This will provide visual support for the progress achieved between 2008 and 2015. Recognizing that such radius is quite large, we also map the current progress in collecting denser information. Levels of Ozone and PM2.5 and Radii evolutions are captured in a series of 8 annual charts, one for each variable, and animated with the Chroropletr player implemented with an html file.
+To perform this last step, we limit our observation to a radius less than 250 miles. This will provide visual support for the progress achieved between 2008 and 2015. Recognizing that such radius is quite large, we also map the current progress in collecting denser information. Levels of Ozone and PM2.5 and Radii evolutions are captured in a series of 8 annual charts, one for each variable, and animated with the chroroplethr player implemented with an html file.
 
 
 ```r
@@ -794,7 +794,7 @@ The [choroplethr animation](./Pollution_files/figure-html/animated_choropleth.ht
 
 # Conclusions
 
-This analysis shows definite trends and explores techniques to screen data content. ggmap and choroplethr visualization are complementing more common histograms, point charts and less frequently used but powerfull radar charts.
+This analysis shows definite trends and explores techniques to screen data content. ggmap and choroplethr visualization are complementing more common histograms, point charts and less frequently used, but powerful radar charts.
 The next target will be to port this type of visualization to a shiny app and extend to other pollutants as selected dynamically in the application from the US EPA records.
 
 # References
