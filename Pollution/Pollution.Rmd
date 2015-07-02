@@ -4,13 +4,12 @@ author: "Marc Borowczak"
 date: '`r Sys.Date()`'
 output: 
   html_document:
-    theme: flatly
-    highlight: zenburn
     fig_caption: yes
     fig_height: 6
     fig_width: 10
+    highlight: zenburn
     keep_md: yes
-    number_sections: no
+    theme: flatly
     toc: yes
 ---
 ```{r setup, include=FALSE}
@@ -620,7 +619,7 @@ shell("convert -delay 100 -loop 0 *.png choroplethr.gif")
 file.remove(list.files(pattern=".png"))
 setwd(userdir)
 ```
-![Live](./Animations/choroplethr.gif)
+![](./Animations/choroplethr.gif)
 
 
 # Conclusions

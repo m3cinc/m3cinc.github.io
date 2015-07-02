@@ -825,7 +825,7 @@ file.remove(list.files(pattern=".png"))
 ```r
 setwd(userdir)
 ```
-![Live](./Animations/choroplethr.gif)
+![](./Animations/choroplethr.gif)
 
 
 # Conclusions
