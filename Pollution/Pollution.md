@@ -16,12 +16,8 @@ Sys.info()[1:5]                         # system info but exclude login and user
 ```
 
 ```
-##                      sysname                      release 
-##                    "Windows"                      "7 x64" 
-##                      version                     nodename 
-## "build 7601, Service Pack 1"                   "STALLION" 
-##                      machine 
-##                     "x86-64"
+##       sysname       release       version      nodename       machine 
+##     "Windows"       "7 x64"  "build 9200" "LEARNING-PC"      "x86-64"
 ```
 
 ```r
@@ -45,7 +41,7 @@ sessionInfo()                           # to document platform
 ```
 ## R version 3.2.1 (2015-06-18)
 ## Platform: x86_64-w64-mingw32/x64 (64-bit)
-## Running under: Windows 7 x64 (build 7601) Service Pack 1
+## Running under: Windows 8 x64 (build 9200)
 ## 
 ## locale:
 ## [1] LC_COLLATE=English_United States.1252 
@@ -84,8 +80,10 @@ sessionInfo()                           # to document platform
 ```r
 datadir <- "./data"
 figdir <- "./Pollution_files/figure-html"
+anidir <- "./Animations"
 if (!file.exists("data")) { dir.create("data") }  # data will reside in subdir ./data
 if (!file.exists("figures")) { dir.create("figures") }  # figures will reside in subdir ./figures
+if (!file.exists("Animations")) { dir.create("Animations") } # for animated gif
 ```
 
 # Reproducible Data Gathering and Transformation
@@ -317,7 +315,7 @@ df[,c("lon","lat")] %>%
 pollutant$yr<-as.factor(pollutant$yr)
 ```
 
-## 2 Histograms
+## Histograms
 
 It is important to observe pollutant levels, but also essential to realize at which distance the radius monitoring is occuring. Since the screener routing adapts itself to the 5 nearest neighbors mean, we need to see how these radii are distributed.
 
@@ -772,7 +770,7 @@ for (j in 2008:2015) {
         df %>% rename(value=radius) -> df
         choropleths[[i]]=county_choropleth(df, title = paste(as.character(j),"Pollutant Reporting Radius (Miles)"), legend = "Miles", num_colors = 1, state_zoom = NULL, county_zoom = NULL)
         choropleths[[i]]$scales$scales[[1]]$limits<-c(0,250)
-        }
+}
 choroplethr_animate(choropleths)
 ```
 
@@ -786,15 +784,53 @@ choroplethr_animate(choropleths)
 ```
 
 ```r
+for (j in 1:9)
+    { from.filename<-paste0("choropleth_",j,".png")
+      to.filename<-paste0("choropleth_",formatC(j,width=2,flag="0"),".png")
+      file.rename(from=from.filename,to=to.filename)
+      file.remove(from.filename)
+    }
 setwd(userdir) # return to working directory
-rm(t,df) # cleanup
+rm(t,df,from.filename,to.filename) # cleanup
 ```
 
-The [choroplethr animation](./Pollution_files/figure-html/animated_choropleth.html) is provided with its own player. All figures have been written to the ./figure-html sub directory and can be viewed individually as well.
+The [choroplethr animation](./Pollution_files/figure-html/animated_choropleth.html) is provided with its own player. All figures have been written to the ./figure-html sub directory and can be viewed individually as well. Alternatively, we can render as an animated gif directly provided we convert the png files into an animated gif with the [ImageMagick converter](http://www.imagemagick.org/script/index.php) and execute a shell command.
+
+
+```r
+setwd(figdir)
+filestocopy<-as.vector(list.files(pattern="choropleth_"))
+anidir<-paste(userdir,strsplit(anidir,"/")[[1]][length(strsplit(anidir,"/")[[1]])],sep="/")
+file.copy(from=filestocopy, to=anidir, copy.mode=TRUE)
+```
+
+```
+##  [1] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE
+## [15] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE
+```
+
+```r
+setwd(anidir)
+# now convert in anidir these sequentially numbered files to one gif using ImageMagick
+shell("convert -delay 100 -loop 0 *.png choroplethr.gif")
+# now remove all the *png files
+file.remove(list.files(pattern=".png"))
+```
+
+```
+##  [1] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE
+## [15] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE
+```
+
+```r
+setwd(userdir)
+```
+![Live](./Animations/choroplethr.gif)
+
 
 # Conclusions
 
-This analysis shows definite trends and explores techniques to screen data content. ggmap and choroplethr visualization are complementing more common histograms, point charts and less frequently used, but powerful radar charts.
+This analysis shows definite trends and explores techniques to screen data content. ggmap and choroplethr visualization are complementing more common histograms, point charts and less frequently used, but powerful radar charts. Both external players and animated gif allow for versatile animation display in an HTML environment.
 The next target will be to port this type of visualization to a shiny app and extend to other pollutants as selected dynamically in the application from the US EPA records.
 
 # References
@@ -808,3 +844,5 @@ The following sources are referenced as they provided significant help and infor
 4. [choroplethr Package](http://cran.r-project.org/web/packages/choroplethr/choroplethr.pdf)
 5. [stackoverflow ggplot/mapping US counties thread](http://stackoverflow.com/questions/23714052/ggplot-mapping-us-counties-problems-with-visualization-shapes-in-r)
 6. [pbapply Package](http://cran.r-project.org/web/packages/pbapply/pbapply.pdf)
+7. [ImageMagick converter](http://www.imagemagick.org/script/index.php)
+

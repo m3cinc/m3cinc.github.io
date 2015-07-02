@@ -4,7 +4,7 @@ author: "Marc Borowczak"
 date: '`r Sys.Date()`'
 output: 
   html_document:
-    theme: united
+    theme: flatly
     highlight: zenburn
     fig_caption: yes
     fig_height: 6
@@ -43,8 +43,10 @@ library(choroplethrMaps)
 sessionInfo()                           # to document platform
 datadir <- "./data"
 figdir <- "./Pollution_files/figure-html"
+anidir <- "./Animations"
 if (!file.exists("data")) { dir.create("data") }  # data will reside in subdir ./data
 if (!file.exists("figures")) { dir.create("figures") }  # figures will reside in subdir ./figures
+if (!file.exists("Animations")) { dir.create("Animations") } # for animated gif
 ```
 
 # Reproducible Data Gathering and Transformation
@@ -592,17 +594,38 @@ for (j in 2008:2015) {
         df %>% rename(value=radius) -> df
         choropleths[[i]]=county_choropleth(df, title = paste(as.character(j),"Pollutant Reporting Radius (Miles)"), legend = "Miles", num_colors = 1, state_zoom = NULL, county_zoom = NULL)
         choropleths[[i]]$scales$scales[[1]]$limits<-c(0,250)
-        }
+}
 choroplethr_animate(choropleths)
+for (j in 1:9)
+    { from.filename<-paste0("choropleth_",j,".png")
+      to.filename<-paste0("choropleth_",formatC(j,width=2,flag="0"),".png")
+      file.rename(from=from.filename,to=to.filename)
+      file.remove(from.filename)
+    }
 setwd(userdir) # return to working directory
-rm(t,df) # cleanup
+rm(t,df,from.filename,to.filename) # cleanup
 ```
 
-The [choroplethr animation](./Pollution_files/figure-html/animated_choropleth.html) is provided with its own player. All figures have been written to the ./figure-html sub directory and can be viewed individually as well.
+The [choroplethr animation](./Pollution_files/figure-html/animated_choropleth.html) is provided with its own player. All figures have been written to the ./figure-html sub directory and can be viewed individually as well. Alternatively, we can render as an animated gif directly provided we convert the png files into an animated gif with the [ImageMagick converter](http://www.imagemagick.org/script/index.php) and execute a shell command.
+
+```{r animation}
+setwd(figdir)
+filestocopy<-as.vector(list.files(pattern="choropleth_"))
+anidir<-paste(userdir,strsplit(anidir,"/")[[1]][length(strsplit(anidir,"/")[[1]])],sep="/")
+file.copy(from=filestocopy, to=anidir, copy.mode=TRUE)
+setwd(anidir)
+# now convert in anidir these sequentially numbered files to one gif using ImageMagick
+shell("convert -delay 100 -loop 0 *.png choroplethr.gif")
+# now remove all the *png files
+file.remove(list.files(pattern=".png"))
+setwd(userdir)
+```
+![Live](./Animations/choroplethr.gif)
+
 
 # Conclusions
 
-This analysis shows definite trends and explores techniques to screen data content. ggmap and choroplethr visualization are complementing more common histograms, point charts and less frequently used, but powerful radar charts.
+This analysis shows definite trends and explores techniques to screen data content. ggmap and choroplethr visualization are complementing more common histograms, point charts and less frequently used, but powerful radar charts. Both external players and animated gif allow for versatile animation display in an HTML environment.
 The next target will be to port this type of visualization to a shiny app and extend to other pollutants as selected dynamically in the application from the US EPA records.
 
 # References
@@ -616,3 +639,5 @@ The following sources are referenced as they provided significant help and infor
 4. [choroplethr Package](http://cran.r-project.org/web/packages/choroplethr/choroplethr.pdf)
 5. [stackoverflow ggplot/mapping US counties thread](http://stackoverflow.com/questions/23714052/ggplot-mapping-us-counties-problems-with-visualization-shapes-in-r)
 6. [pbapply Package](http://cran.r-project.org/web/packages/pbapply/pbapply.pdf)
+7. [ImageMagick converter](http://www.imagemagick.org/script/index.php)
+
