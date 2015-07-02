@@ -614,7 +614,7 @@ anidir<-paste(userdir,strsplit(anidir,"/")[[1]][length(strsplit(anidir,"/")[[1]]
 file.copy(from=filestocopy, to=anidir, copy.mode=TRUE)
 setwd(anidir)
 # now convert in anidir these sequentially numbered files to one gif using ImageMagick
-shell("convert -delay 100 -loop 0 *.png choroplethr.gif")
+shell("convert -delay 100 -loop 0 -depth 4 -background white -quality 70 *.png choroplethr.gif")
 # now remove all the *png files
 file.remove(list.files(pattern=".png"))
 setwd(userdir)

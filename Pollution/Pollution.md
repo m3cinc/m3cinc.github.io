@@ -68,12 +68,12 @@ sessionInfo()                           # to document platform
 ## [10] DBI_0.3.1           yaml_2.1.13         parallel_3.2.1     
 ## [13] proto_0.3-10        gridExtra_0.9.1     cluster_2.0.1      
 ## [16] stringr_1.0.0       knitr_1.10.5        nnet_7.3-9         
-## [19] R6_2.0.1            XML_3.98-1.2        survival_2.38-1    
+## [19] R6_2.0.1            XML_3.98-1.3        survival_2.38-1    
 ## [22] foreign_0.8-63      rmarkdown_0.7       latticeExtra_0.6-26
 ## [25] Formula_1.2-1       reshape2_1.4.1      acs_1.2            
 ## [28] scales_0.2.5        Hmisc_3.16-0        htmltools_0.2.6    
 ## [31] MASS_7.3-40         splines_3.2.1       assertthat_0.1     
-## [34] colorspace_1.2-6    stringi_0.5-2       acepack_1.3-3.3    
+## [34] colorspace_1.2-6    stringi_0.5-5       acepack_1.3-3.3    
 ## [37] munsell_0.4.2       chron_2.3-47
 ```
 
@@ -812,7 +812,7 @@ file.copy(from=filestocopy, to=anidir, copy.mode=TRUE)
 ```r
 setwd(anidir)
 # now convert in anidir these sequentially numbered files to one gif using ImageMagick
-shell("convert -delay 100 -loop 0 *.png choroplethr.gif")
+shell("convert -delay 100 -loop 0 -depth 4 -background white -quality 70 *.png choroplethr.gif")
 # now remove all the *png files
 file.remove(list.files(pattern=".png"))
 ```
