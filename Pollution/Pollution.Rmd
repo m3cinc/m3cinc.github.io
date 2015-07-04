@@ -21,7 +21,7 @@ output:
    toc: yes
 ---
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(cache=TRUE,message=FALSE,warning=FALSE)
+knitr::opts_chunk$set(cache=TRUE,message=FALSE,warning=FALSE,pdf.options(useDingbats=TRUE))
 ```
 # Summary
 
@@ -409,11 +409,11 @@ g6$scales$scales[[1]]$limits<-c(-200,200)
 g6
 rm(m.usa) # cleanup
 ```
-We observe some significant improvements in CO (arapahoe, denver, adams...),
+We observe some significant improvements in CO (arapahoe, denver, adams...) and MT (glacier,pondera, teton...)
 ```{r best}
 head(t[order(t$radius.change), ], 10, addrownums = FALSE)
 ```
-and degradations in ND (divide, burke, mountrail,...) and MT (sheridan, richland).
+and degradations in AK (washington, crawford,...), WA (asotin), ID (washington) ...
 ```{r worst}
 tail(t[order(t$radius.change), ], 10, addrownums = FALSE)
 ```
@@ -569,6 +569,8 @@ gg4
 
 rm(df) # cleanup
 ```
+It is important tonote the high level of PM2.5 reported in CA and NV, in excess of 20ppm, while The Ozone ppm level reained overall below 7 ppm overall.
+
 To generate the radar charts, we will use again the ggplot function, and perform charts on the normalized data. We produce faceted charts by Year and superimpose on the chart Ozone and PM2.5
 ```{r radar-1}
 # Define a new coordinate system 
@@ -640,14 +642,19 @@ for (j in 2008:2015) {
         choropleths[[i]]$scales$scales[[1]]$limits<-c(0,250)
 }
 choroplethr_animate(choropleths)
-for (j in 1:9)
-    { from.filename<-paste0("choropleth_",j,".png")
-      to.filename<-paste0("choropleth_",formatC(j,width=2,flag="0"),".png")
-      file.rename(from=from.filename,to=to.filename)
-      file.remove(from.filename)
-    }
+for (j in 1:9) {
+      orig<-paste0("choropleth_",j,".png")
+      dest<-paste0("choropleth_",formatC(j,width=2,flag="0"),".png")
+      file.rename(from=orig,to=dest)
+      file.remove(orig)
+}
+for(j in 1:24) {
+      orig<-paste0("choropleth_",formatC(j,width=2,flag="0"),".png")
+      dest<-paste0("choroplethz_",formatC(j,width=2,flag="0"),".png")
+      shell(paste("convert -depth 3 -background white -quality 70",orig,dest))
+}
 setwd(userdir) # return to working directory
-rm(t,df,from.filename,to.filename) # cleanup
+rm(t,df,orig,dest) # cleanup
 ```
 
 The [choroplethr animation](./Pollution_files/figure-html/animated_choropleth.html) is provided with its own player. All figures have been written to the ./figure-html sub directory and can be viewed individually as well. Alternatively, we can render as an animated gif directly provided we convert the png files into an animated gif with the [ImageMagick converter](http://www.imagemagick.org/script/index.php) and execute a shell command. We will also use the animation library to illustrate animation in a pdf document.
@@ -659,17 +666,17 @@ anidir<-paste(userdir,strsplit(anidir,"/")[[1]][length(strsplit(anidir,"/")[[1]]
 file.copy(from=filestocopy, to=anidir, copy.mode=TRUE)
 setwd(anidir)
 # now convert in anidir these sequentially numbered files to one gif using ImageMagick
-shell("convert -delay 100 -loop 0 -depth 4 -background white -quality 70 *.png choroplethr.gif")
+shell("convert -delay 100 -loop 0 -depth 3 -background white -quality 70 *.png choroplethr.gif")
 # for html, use animated gif via
 #![](./Animations/choroplethr.gif)
 # for pdf, use animate package in LaTex
 ```
 \begin{center}
-$\animategraphics[controls,loop,width=1\linewidth]{2}{./Animations/choropleth_}{01}{24}$
+$\animategraphics[controls,loop,width=1\linewidth]{1}{./Pollution_files/figure-html/choroplethz_}{01}{24}$
 \end{center}
 
 ```{r finale, results='hide',message=FALSE} 
-# now remove all the *png files
+# now remove all the *.png files
 file.remove(list.files(pattern=".png"))
 setwd(userdir)
 ```
