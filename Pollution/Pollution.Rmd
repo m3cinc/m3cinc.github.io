@@ -2,15 +2,23 @@
 title: "US Ozone and PM2.5 Maps and Trends"
 author: "Marc Borowczak"
 date: '`r Sys.Date()`'
-output: 
+header-includes:
+ - \usepackage{animate}
+output:
+  pdf_document:
+   toc: true
+   fig_caption: true
+   fig_height: 6
+   fig_width: 10
+   highlight: tango
   html_document:
-    fig_caption: yes
-    fig_height: 6
-    fig_width: 10
-    highlight: zenburn
-    keep_md: yes
-    theme: flatly
-    toc: yes
+   fig_caption: yes
+   fig_height: 6
+   fig_width: 10
+   highlight: zenburn
+   keep_md: yes
+   theme: flatly
+   toc: yes
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(cache=TRUE,message=FALSE,warning=FALSE)
@@ -39,12 +47,13 @@ library(RColorBrewer)                   # for brewer.pal(...)
 library(fields)                         # for rdist() in screener
 library(choroplethr)
 library(choroplethrMaps)
+library(animation)
 sessionInfo()                           # to document platform
 datadir <- "./data"
 figdir <- "./Pollution_files/figure-html"
 anidir <- "./Animations"
 if (!file.exists("data")) { dir.create("data") }  # data will reside in subdir ./data
-if (!file.exists("figures")) { dir.create("figures") }  # figures will reside in subdir ./figures
+if (!file.exists("figures")) { dir.create("figures") }  # figures in subdir ./figures
 if (!file.exists("Animations")) { dir.create("Animations") } # for animated gif
 ```
 
@@ -57,8 +66,10 @@ y_monitors<-NULL
 y_pollavg<-NULL
 for (i in 2008:2015)
 {
-        url<-paste0("http://aqsdr1.epa.gov/aqsweb/aqstmp/airdata/annual_all_",as.character(i),".zip",sep='')
-        filename <- paste(datadir,strsplit(url,"/")[[1]][length(strsplit(url,"/")[[1]])],sep="/")
+        url<-paste0("http://aqsdr1.epa.gov/aqsweb/aqstmp/airdata/annual_all_",
+                    as.character(i),".zip",sep='')
+        filename <- paste(datadir,strsplit(url,"/")[[1]][length(strsplit(url,"/")[[1]])],
+                          sep="/")
         download.file(url, dest=filename, mode="wb")
         unzip (filename, exdir = datadir) # unzip creates and populates the data structure
         unlink(filename) # remove the zip file
@@ -74,14 +85,15 @@ for (i in 2008:2015)
         y_poll$Parameter.Name[y_poll$Parameter.Name=="PM2.5 - Local Conditions"]<-"PM2p5"
         y_poll<-transform(y_poll,Parameter.Name=factor(Parameter.Name))
 
-        if(is.null(nrow(y_monitors))) {y_pollavg<-y_poll
-                       y_monitors<-data.matrix(y_pollavg[,c("Year","Longitude","Latitude")])
-                       } 
-        else 
-                       {y_pollavg<-rbind(y_pollavg,y_poll)
-                       y_monitors<-rbind(y_monitors,data.matrix(y_pollavg[,c("Year","Longitude","Latitude")]))
-                       }
-
+        if(is.null(nrow(y_monitors))) {
+                y_pollavg<-y_poll
+                y_monitors<-data.matrix(y_pollavg[,c("Year","Longitude","Latitude")])
+                } 
+        else    {
+                y_pollavg<-rbind(y_pollavg,y_poll)
+                y_monitors<-rbind(y_monitors,
+                                  data.matrix(y_pollavg[,c("Year","Longitude","Latitude")]))
+                }
 }
 names(y_pollavg)[1]<-"yr"
 rm(d,sub,datadir,filename,url,i,y_poll)
@@ -129,27 +141,33 @@ screener <- function(df)
         n<-nrow(df)
         df.in<-df
         df.out<-data.frame()
-#        pb <- txtProgressBar(min = 0, max = n, style = 3,char="+")
+#       pb <- txtProgressBar(min = 0, max = n, style = 3,char="+")
         for (k in 1:n) {
-                df<-data.frame(df.in[k,])
-                dlevel1<-data.frame()
-                for (j in 2008:2015) {
-                        use<-vector()
-                        d<-rdist.earth(subset(y_pollavg,yr==j,select=-yr),data.matrix(df[,c("lon","lat")]))
-                        use<-lapply(seq_len(ncol(d)),function(i) {         head(data.frame(sort(d[,i],decreasing=FALSE,index.return=TRUE)),5)$ix })
-                        r<-max(sapply(seq_len(ncol(d)),function(i) { head(data.frame(sort(d[,i],decreasing=FALSE,index.return=TRUE)),5)$x }))       
-                        l.Ozone<-sapply (use,function(idx) {with(subset(y_pollavg,yr==j & Parameter.Name=="Ozone",select=-yr)[idx,],tapply(level, Parameter.Name=="Ozone", mean))})
-                        l.PM2p5<-sapply (use,function(idx) {with(subset(y_pollavg,yr==j & Parameter.Name=="PM2p5",select=-yr)[idx,],tapply(level, Parameter.Name=="PM2p5", mean))})
-                        dlevel1 <- rbind(dlevel1,c(j,r,l.Ozone,l.PM2p5))
-                        # cleanup time
-                        rm(d,r,l.Ozone,l.PM2p5,use)
+            df<-data.frame(df.in[k,])
+            dlevel1<-data.frame()
+            for (j in 2008:2015) {
+                use<-vector()
+                d<-rdist.earth(subset(y_pollavg,yr==j,select=-yr),data.matrix(df[,c("lon","lat")]))
+                use<-lapply(seq_len(ncol(d)),function(i) {
+                  head(data.frame(sort(d[,i],decreasing=FALSE,index.return=TRUE)),5)$ix })
+                r<-max(sapply(seq_len(ncol(d)),function(i) {
+                  head(data.frame(sort(d[,i],decreasing=FALSE,index.return=TRUE)),5)$x }))       
+                l.Ozone<-sapply (use,function(idx) {
+                  with(subset(y_pollavg,yr==j & Parameter.Name=="Ozone",select=-yr)[idx,],
+                       tapply(level, Parameter.Name=="Ozone", mean))})
+                l.PM2p5<-sapply (use,function(idx) {
+                  with(subset(y_pollavg,yr==j & Parameter.Name=="PM2p5",select=-yr)[idx,],
+                       tapply(level, Parameter.Name=="PM2p5", mean))})
+                dlevel1 <- rbind(dlevel1,c(j,r,l.Ozone,l.PM2p5))
+                # cleanup time
+                rm(d,r,l.Ozone,l.PM2p5,use)
                 }
-                names(dlevel1)<-c("yr","radius","Ozone","PM2p5")
-                df<-data.frame(df,dlevel1,row.names = NULL)
-                df.out<-rbind(df.out,df)
-#                setTxtProgressBar(pb,k)
+            names(dlevel1)<-c("yr","radius","Ozone","PM2p5")
+            df<-data.frame(df,dlevel1,row.names = NULL)
+            df.out<-rbind(df.out,df)
+#           setTxtProgressBar(pb,k)
         }
-#        close(pb)
+#       close(pb)
         df<-df.out
         rm(df.in,df.out,dlevel1,k,j)
         df
@@ -266,14 +284,18 @@ pollutant$yr<-as.factor(pollutant$yr)
 It is important to observe pollutant levels, but also essential to realize at which distance the radius monitoring is occuring. Since the screener routing adapts itself to the 5 nearest neighbors mean, we need to see how these radii are distributed.
 
 ```{r histograms}
-m1<-ggplot(pollutant,aes(x=radius)) + geom_histogram(binwidth=20,color="grey50",fill='blue') +
-      labs(title="2008 ~ 2015 Radius (Miles) reporting Pollutants",x="Radius (Miles)",y="Count")+
+m1<-ggplot(pollutant,aes(x=radius)) +
+      geom_histogram(binwidth=20,color="grey50",fill='blue') +
+      labs(title="2008 ~ 2015 Radius (Miles) reporting Pollutants",
+           x="Radius (Miles)",y="Count")+
       theme_bw()
 m1
  
-m2<-ggplot(pollutant,aes(x=radius,fill=yr))+geom_histogram(binwidth=20,color="grey50") +
+m2<-ggplot(pollutant,aes(x=radius,fill=yr)) +
+      geom_histogram(binwidth=20,color="grey50") +
       facet_wrap(~yr) +
-      labs(title="Radius (Miles) reporting Pollutants by Year",x="Radius (Miles)",y="Count") +
+      labs(title="Radius (Miles) reporting Pollutants by Year",
+           x="Radius (Miles)",y="Count") +
       theme_bw()
 m2
 ```
@@ -296,7 +318,8 @@ We are now ready to chart these county ggplots...We will slightly adapt the scal
 
 ```{r ggplot-1}
 g1 <- ggplot(subset(pollutant,type=="Ozone"), aes(map_id = region)) +
-  geom_map(aes(fill = level), map = m.usa) + expand_limits(x = m.usa$long, y = m.usa$lat) +
+  geom_map(aes(fill = level), map = m.usa) + 
+  expand_limits(x = m.usa$long, y = m.usa$lat) +
   scale_fill_gradientn("ppm",colours=brewer.pal(9,"YlGnBu"))
 g1 <- last_plot() + coord_map() + facet_wrap(~ yr,nrow=3) +
   labs(title="Ozone Pollutant level by County, ppm",x="",y="")+ theme_bw()
@@ -306,7 +329,8 @@ g1
 We observe: West/Southwest highest but decreasing Ozone levels over the 2008-2014 period.
 ```{r ggplot-2}
 g2 <- ggplot(subset(pollutant,type=="PM2p5"), aes(map_id = region)) +
-  geom_map(aes(fill = level), map = m.usa) + expand_limits(x = m.usa$long, y = m.usa$lat) +
+  geom_map(aes(fill = level), map = m.usa) +
+  expand_limits(x = m.usa$long, y = m.usa$lat) +
   scale_fill_gradientn("ppm",colours=brewer.pal(9,"YlGnBu"))
 g2 <- last_plot() + coord_map() + facet_wrap(~ yr,nrow = 3) +
   labs(title="PM2.5 Pollutant level by County, ppm",x="",y="")+ theme_bw()
@@ -316,7 +340,8 @@ g2
 We observe: California highest levels, Western US shows low levels of PM2.5.
 ```{r ggplot-3}
 g3 <- ggplot(subset(pollutant,type=="Ozone"), aes(map_id = region)) +
-  geom_map(aes(fill = radius), map = m.usa) + expand_limits(x = m.usa$long, y = m.usa$lat) +
+  geom_map(aes(fill = radius), map = m.usa) +
+  expand_limits(x = m.usa$long, y = m.usa$lat) +
   scale_fill_gradientn("Miles",colours=brewer.pal(9,"YlGnBu"))
 g3 <- last_plot() + coord_map() + facet_wrap(~ yr,nrow = 3) +
   labs(title="2008 ~ 2015 Radius reporting Pollutant by County, Miles",x="",y="") + theme_bw()
@@ -333,11 +358,13 @@ t$yr<-as.character(t$yr)
 t$yr<-paste0("Y",t$yr)
 t %>% spread(yr,level) %>% mutate(level.change=Y2014-Y2010) -> t
 
-g4 <- ggplot(t, aes(map_id = region)) + geom_map(aes(fill = level.change), map = m.usa) +
+g4 <- ggplot(t, aes(map_id = region)) +
+  geom_map(aes(fill = level.change), map = m.usa) +
   expand_limits(x = m.usa$long, y = m.usa$lat) +
   scale_fill_gradientn("ppm",colours=brewer.pal(9,"YlGnBu"))
 g4 <- last_plot() + coord_map() +
-        labs(title="2010 ~ 2014 Ozone Pollutant Level Change by County, ppm",x="",y="")+ theme_bw()
+  labs(title="2010 ~ 2014 Ozone Pollutant Level Change by County, ppm",x="",y="") +
+  theme_bw()
 g4$scales$scales[[1]]$limits<-c(-0.010,0.01)
 g4
 ```
@@ -351,11 +378,13 @@ t$yr<-as.character(t$yr)
 t$yr<-paste0("Y",t$yr)
 t %>% spread(yr,level) %>% mutate(level.change=Y2014-Y2010) -> t
 
-g5 <- ggplot(t, aes(map_id = region)) + geom_map(aes(fill = level.change), map = m.usa) +
+g5 <- ggplot(t, aes(map_id = region)) +
+  geom_map(aes(fill = level.change), map = m.usa) +
   expand_limits(x = m.usa$long, y = m.usa$lat) +
   scale_fill_gradientn("ppm",colours=brewer.pal(9,"YlGnBu"))
 g5 <- last_plot() + coord_map() +
-  labs(title="2010 ~ 2014 PM2.5 Pollutant Level Change by County, ppm",x="",y="")+ theme_bw()
+  labs(title="2010 ~ 2014 PM2.5 Pollutant Level Change by County, ppm",x="",y="") +
+  theme_bw()
 g5$scales$scales[[1]]$limits<-c(-4,4)
 g5
 ```
@@ -374,7 +403,8 @@ g6 <- ggplot(t, aes(map_id = region)) + geom_map(aes(fill = radius.change),map =
   expand_limits(x = m.usa$long, y = m.usa$lat) +
   scale_fill_gradientn("Miles",colours=brewer.pal(9,"YlGnBu"))
 g6 <- last_plot() + coord_map() +
-  labs(title="2010 ~ 2014 Radius reporting Pollutant Change by County, Miles",x="",y="") + theme_bw()
+  labs(title="2010 ~ 2014 Radius reporting Pollutant Change by County, Miles",x="",y="") +
+  theme_bw()
 g6$scales$scales[[1]]$limits<-c(-200,200)
 g6
 rm(m.usa) # cleanup
@@ -396,14 +426,14 @@ Finally, we attempt another approach with choroplethr, athough there is little d
 pollutant<-data.frame()
 set.seed(1)    # for reproducible example
 # this creates an example formatted as a pollutant.map
-datadir<-"./data" ; if (!file.exists("data")) { dir.create("data") } # data will reside in subdir
+datadir<-"./data" ; if (!file.exists("data")) { dir.create("data") } 
 url<-"http://www2.census.gov/geo/docs/maps-data/data/gazetteer/Gaz_counties_national.zip"
 filename <- paste(datadir,strsplit(url,"/")[[1]][length(strsplit(url,"/")[[1]])],sep="/")
 download.file(url, dest=filename, mode="wb")
 unzip (filename, exdir = datadir) # unzip creates and populates the data structure
 unlink(filename) # remove the zip file
 filename <-gsub(".zip",".txt",filename)
-d <- read.delim(filename,header=TRUE,sep="\t",stringsAsFactors=FALSE) # populate data frame
+d <- read.delim(filename,header=TRUE,sep="\t",stringsAsFactors=FALSE) # populate 
 # cleanup
 rm(datadir,filename,url)
 names(d)<-tolower(names(d))
@@ -432,21 +462,24 @@ We now have a pollutant data frame that can contain all 50 states counties, and 
 m1<-ggplot(subset(t,state %in% c("alaska","hawaii")),aes(x=Ozone)) +
     geom_histogram(binwidth=0.001,color="grey50",fill="blue") +
     xlim(c(0,0.07)) + facet_grid(state ~ yr) +
-    labs(title="2008 ~ 2015 Ozone Pollutant Level Distribution",x="pollutant level (ppm)", y="Count") +
+    labs(title="2008 ~ 2015 Ozone Pollutant Level Distribution",
+         x="pollutant level (ppm)", y="Count") +
     theme_bw()
 m1
 
 m2<-ggplot(subset(t,state %in% c("alaska","hawaii")),aes(x=PM2p5)) +
     geom_histogram(binwidth=1,color="grey50",fill="blue") +
     xlim(c(0,20)) + facet_grid(state ~ yr) +
-    labs(title="2008 ~ 2015 PM2.5 Pollutant Level Distribution",x="pollutant level (ppm)",y="Count") +
+    labs(title="2008 ~ 2015 PM2.5 Pollutant Level Distribution",
+         x="pollutant level (ppm)",y="Count") +
     theme_bw()
 m2
 
 m3<-ggplot(subset(t,state %in% c("alaska","hawaii")),aes(x=radius)) +
     geom_histogram(binwidth=30,color="grey50",fill="blue") +
     xlim(c(0,3000)) + facet_grid(state ~ yr) +
-    labs(title="2008 ~ 2015 Radius (Miles) reporting Pollutants",x="Radius (Miles)",y="Count") +
+    labs(title="2008 ~ 2015 Radius (Miles) reporting Pollutants",
+         x="Radius (Miles)",y="Count") +
     theme_bw()
 m3
 ```
@@ -455,7 +488,9 @@ We observe HI has no data reported, and radius values in excess of 2000 miles in
 m4<-ggplot(subset(t,state %in% c("alaska","hawaii") & radius <500),aes(x=radius)) +
     geom_histogram(binwidth=20,color="grey50",fill="blue") +
     facet_wrap(state ~ yr) +
-    labs(title="Radius (Miles) reporting Pollutants by Year",x="Radius (Miles)",y="Count") + theme_bw()
+    labs(title="Radius (Miles) reporting Pollutants by Year",
+         x="Radius (Miles)",y="Count") +
+  theme_bw()
 m4
 ```
 
@@ -549,8 +584,10 @@ rownames(y)<-NULL
 ggplot(y,aes(x=id,y=value)) +
         geom_path(aes(group=type, color=funs)) +
         coord_radar()+facet_wrap(type ~ yr,nrow=4) +
-        labs(title = "Annual Ozone and PM2.5 Radius Statistics for All 50 US States",x="",y="Normalized value") +
-        theme(strip.text.x = element_text(size = rel(0.8)), axis.text.x = element_text(size = rel(0.8)))
+        labs(title = "Annual Ozone and PM2.5 Radius Statistics for All 50 US States",
+             x="",y="Normalized value") +
+        theme(strip.text.x = element_text(size = rel(0.8)),
+              axis.text.x = element_text(size = rel(0.8)))
 ```
 We observe that both AK and HI exhibit very large radii, so let's exclude these...
 ```{r radar-2}
@@ -561,8 +598,10 @@ rownames(y)<-NULL
 ggplot(y,aes(x=id,y=value)) +
         geom_path(aes(group=type, color=funs)) +
         coord_radar()+facet_wrap(type ~ yr,nrow=4) +
-        labs(title = "Annual Ozone and PM2.5 Radius Statistics for Lower 48 US States",x="",y="Normalized value") +
-        theme(strip.text.x = element_text(size = rel(0.8)), axis.text.x = element_text(size = rel(0.8))) 
+        labs(title = "Annual Ozone and PM2.5 Radius Statistics for Lower 48 US States",
+             x="",y="Normalized value") +
+        theme(strip.text.x = element_text(size = rel(0.8)),
+              axis.text.x = element_text(size = rel(0.8))) 
 rm(y,t) # cleanup
 ```
 
@@ -570,7 +609,7 @@ rm(y,t) # cleanup
 
 To perform this last step, we limit our observation to a radius less than 250 miles. This will provide visual support for the progress achieved between 2008 and 2015. Recognizing that such radius is quite large, we also map the current progress in collecting denser information. Levels of Ozone and PM2.5 and Radii evolutions are captured in a series of 8 annual charts, one for each variable, and animated with the chroroplethr player implemented with an html file.
 
-```{r choroplethr}
+```{r choroplethr, results='hide',message=FALSE}
 subset(pollutant,radius<250) %>% gather("type","value",9:10)  -> t
 # the animated story...
 choropleths<-list()
@@ -578,20 +617,26 @@ setwd(figdir) # point to ./figures sub directory
 for (j in 2008:2015) {
         i<-j-2007
         df<-subset(t,type=="Ozone" & yr==as.character(j),select=c(region,value))
-        choropleths[[i]]=county_choropleth(df, title = paste(as.character(j),"Ozone level (ppm) Reporting Radius < 250 Miles"), legend = "ppm level", num_colors = 1, state_zoom = NULL, county_zoom = NULL)
+        choropleths[[i]]=county_choropleth(df,
+            title = paste(as.character(j),"Ozone level (ppm) Reporting Radius < 250 Miles"),
+            legend = "ppm level", num_colors = 1, state_zoom = NULL, county_zoom = NULL)
         choropleths[[i]]$scales$scales[[1]]$limits<-c(0,0.07)
         }        
 for (j in 2008:2015) {
         i<-j-1999
         df<-subset(t,type=="PM2p5" & yr==as.character(j),select=c(region,value))
-        choropleths[[i]]=county_choropleth(df, title = paste(as.character(j),"PM2.5 level (ppm) Reporting Radius < 250 Miles"), legend = "ppm level", num_colors = 1, state_zoom = NULL, county_zoom = NULL)
+        choropleths[[i]]=county_choropleth(df,
+            title = paste(as.character(j),"PM2.5 level (ppm) Reporting Radius < 250 Miles"), 
+            legend = "ppm level", num_colors = 1, state_zoom = NULL, county_zoom = NULL)
         choropleths[[i]]$scales$scales[[1]]$limits<-c(0,21)
         }        
 for (j in 2008:2015) {
         i<-j-1991
         df<-subset(t,type=="Ozone" & yr==as.character(j),select=c(region,radius))
         df %>% rename(value=radius) -> df
-        choropleths[[i]]=county_choropleth(df, title = paste(as.character(j),"Pollutant Reporting Radius (Miles)"), legend = "Miles", num_colors = 1, state_zoom = NULL, county_zoom = NULL)
+        choropleths[[i]]=county_choropleth(df,
+            title = paste(as.character(j),"Pollutant Reporting Radius (Miles)"), 
+            legend = "Miles", num_colors = 1, state_zoom = NULL, county_zoom = NULL)
         choropleths[[i]]$scales$scales[[1]]$limits<-c(0,250)
 }
 choroplethr_animate(choropleths)
@@ -605,9 +650,9 @@ setwd(userdir) # return to working directory
 rm(t,df,from.filename,to.filename) # cleanup
 ```
 
-The [choroplethr animation](./Pollution_files/figure-html/animated_choropleth.html) is provided with its own player. All figures have been written to the ./figure-html sub directory and can be viewed individually as well. Alternatively, we can render as an animated gif directly provided we convert the png files into an animated gif with the [ImageMagick converter](http://www.imagemagick.org/script/index.php) and execute a shell command.
+The [choroplethr animation](./Pollution_files/figure-html/animated_choropleth.html) is provided with its own player. All figures have been written to the ./figure-html sub directory and can be viewed individually as well. Alternatively, we can render as an animated gif directly provided we convert the png files into an animated gif with the [ImageMagick converter](http://www.imagemagick.org/script/index.php) and execute a shell command. We will also use the animation library to illustrate animation in a pdf document.
 
-```{r animation}
+```{r animation, results='hide',message=FALSE}
 setwd(figdir)
 filestocopy<-as.vector(list.files(pattern="choropleth_"))
 anidir<-paste(userdir,strsplit(anidir,"/")[[1]][length(strsplit(anidir,"/")[[1]])],sep="/")
@@ -615,12 +660,19 @@ file.copy(from=filestocopy, to=anidir, copy.mode=TRUE)
 setwd(anidir)
 # now convert in anidir these sequentially numbered files to one gif using ImageMagick
 shell("convert -delay 100 -loop 0 -depth 4 -background white -quality 70 *.png choroplethr.gif")
+# for html, use animated gif via
+#![](./Animations/choroplethr.gif)
+# for pdf, use animate package in LaTex
+```
+\begin{center}
+$\animategraphics[controls,loop,width=1\linewidth]{2}{./Animations/choropleth_}{01}{24}$
+\end{center}
+
+```{r finale, results='hide',message=FALSE} 
 # now remove all the *png files
 file.remove(list.files(pattern=".png"))
 setwd(userdir)
 ```
-![](./Animations/choroplethr.gif)
-
 
 # Conclusions
 
