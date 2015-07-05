@@ -2,23 +2,22 @@
 title: "US Ozone and PM2.5 Maps and Trends"
 author: "Marc Borowczak"
 date: '`r Sys.Date()`'
-header-includes:
- - \usepackage{animate}
 output:
-  pdf_document:
-   toc: true
-   fig_caption: true
-   fig_height: 6
-   fig_width: 10
-   highlight: tango
   html_document:
-   fig_caption: yes
-   fig_height: 6
-   fig_width: 10
-   highlight: zenburn
-   keep_md: yes
-   theme: flatly
-   toc: yes
+    fig_caption: yes
+    fig_height: 6
+    fig_width: 10
+    highlight: zenburn
+    keep_md: yes
+    theme: flatly
+    toc: yes
+  pdf_document:
+    fig_caption: yes
+    fig_height: 6
+    fig_width: 10
+    highlight: tango
+    toc: yes
+header-includes: \usepackage{animate}
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(cache=TRUE,message=FALSE,warning=FALSE,pdf.options(useDingbats=TRUE))
@@ -615,7 +614,7 @@ To perform this last step, we limit our observation to a radius less than 250 mi
 subset(pollutant,radius<250) %>% gather("type","value",9:10)  -> t
 # the animated story...
 choropleths<-list()
-setwd(figdir) # point to ./figures sub directory
+setwd(figdir) # point to ./Pollution_files/figure-html sub directory
 for (j in 2008:2015) {
         i<-j-2007
         df<-subset(t,type=="Ozone" & yr==as.character(j),select=c(region,value))
@@ -642,44 +641,37 @@ for (j in 2008:2015) {
         choropleths[[i]]$scales$scales[[1]]$limits<-c(0,250)
 }
 choroplethr_animate(choropleths)
+filestocopy<-as.vector(list.files(pattern="choropleth_"))
+anidir<-paste(userdir,strsplit(anidir,"/")[[1]][length(strsplit(anidir,"/")[[1]])],sep="/")
+file.copy(from=filestocopy, to=anidir, copy.mode=TRUE)
+file.copy(from="animated_choropleth.html", to=anidir,copy.mode=TRUE)
 for (j in 1:9) {
       orig<-paste0("choropleth_",j,".png")
       dest<-paste0("choropleth_",formatC(j,width=2,flag="0"),".png")
       file.rename(from=orig,to=dest)
       file.remove(orig)
 }
+# now convert in figdir these sequentially numbered files to one gif using ImageMagick
+shell("convert -delay 100 -loop 0 -depth 4 -background white -quality 70 choropleth_*.png choroplethr.gif")
+file.copy(from="choroplethr.gif",to=anidir,copy.mode=TRUE)
 for(j in 1:24) {
       orig<-paste0("choropleth_",formatC(j,width=2,flag="0"),".png")
       dest<-paste0("choroplethz_",formatC(j,width=2,flag="0"),".png")
-      shell(paste("convert -depth 3 -background white -quality 70",orig,dest))
+      shell(paste("convert -depth 4 -background white -quality 70",orig,dest))
 }
 setwd(userdir) # return to working directory
 rm(t,df,orig,dest) # cleanup
+# for html, use animated gif via animation, and for pdf, use animate package in LaTex
 ```
 
-The [choroplethr animation](./Pollution_files/figure-html/animated_choropleth.html) is provided with its own player. All figures have been written to the ./figure-html sub directory and can be viewed individually as well. Alternatively, we can render as an animated gif directly provided we convert the png files into an animated gif with the [ImageMagick converter](http://www.imagemagick.org/script/index.php) and execute a shell command. We will also use the animation library to illustrate animation in a pdf document.
+The [choroplethr animation](./Animations/animated_choropleth.html) is provided with its own player. All figures have been written to the ./figure-html sub directory and can be viewed individually as well. Alternatively, we can render as an animated gif directly provided we convert the png files into an animated gif with the [ImageMagick converter](http://www.imagemagick.org/script/index.php) and execute a shell command. We will also use the animation library to illustrate animation in a pdf document.
 
-```{r animation, results='hide',message=FALSE}
-setwd(figdir)
-filestocopy<-as.vector(list.files(pattern="choropleth_"))
-anidir<-paste(userdir,strsplit(anidir,"/")[[1]][length(strsplit(anidir,"/")[[1]])],sep="/")
-file.copy(from=filestocopy, to=anidir, copy.mode=TRUE)
-setwd(anidir)
-# now convert in anidir these sequentially numbered files to one gif using ImageMagick
-shell("convert -delay 100 -loop 0 -depth 3 -background white -quality 70 *.png choroplethr.gif")
-# for html, use animated gif via
-#![](./Animations/choroplethr.gif)
-# for pdf, use animate package in LaTex
-```
+![](./Animations/choroplethr.gif)
+
 \begin{center}
 $\animategraphics[controls,loop,width=1\linewidth]{1}{./Pollution_files/figure-html/choroplethz_}{01}{24}$
 \end{center}
 
-```{r finale, results='hide',message=FALSE} 
-# now remove all the *.png files
-file.remove(list.files(pattern=".png"))
-setwd(userdir)
-```
 
 # Conclusions
 
